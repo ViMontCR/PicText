@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct PicTextApp: App {
@@ -13,5 +14,6 @@ struct PicTextApp: App {
         WindowGroup {
             MainView()
         }
+        .modelContainer(for: SampleModel.self)
     }
 }
