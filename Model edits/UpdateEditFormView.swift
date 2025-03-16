@@ -19,7 +19,7 @@ struct UpdateEditFormView: View {
             Form {
                 TextField("Name", text: $vm.name)
                 VStack {
-                    if vm.data != nil {
+                    if let validData = vm.data {
                         Button("Clear image") {
                             vm.clearImage()
                         }
@@ -35,11 +35,32 @@ struct UpdateEditFormView: View {
                     }
                     .foregroundStyle(.white)
                     .buttonStyle(.borderedProminent)
-                    Image(uiImage: vm.image)
-                        .resizable()
-                        .scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding()
+                    if let validImage = vm.image {
+                        Image(uiImage: validImage)
+                            .resizable()
+                            .scaledToFit()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding()
+                    }
+                   
+                }
+            }
+            .onAppear {
+                imagePicker.setup(vm)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading ) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        
+                    } label: {
+                        Text(vm.isUpDating ? "Update" : "Add")
+                    }
+                    .disabled(vm.isDisabled)
                 }
             }
         }
