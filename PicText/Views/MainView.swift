@@ -8,9 +8,13 @@
 import SwiftUI
 import Vision
 
-struct MainView: View {
+class SampleImagesModel: ObservableObject {
     var sampleImages: [ImageResource] = [.sample1, .sample2, .sample3]
-    @State var curentSampleIndex: Int = 0
+    @Published var curentSampleIndex: Int = 0
+}
+
+struct MainView: View {
+    @ObservedObject var sampleImagesModel: SampleImagesModel = .init()
     @State private var recognizedText = ""
     @State var resultArray: [String] = []
     @State var selectedTexts: [SelectedText] = []
@@ -48,7 +52,7 @@ struct MainView: View {
     }
     
     var sampleImageView: some View {
-        Image(sampleImages[curentSampleIndex])
+        Image(sampleImagesModel.sampleImages[sampleImagesModel.curentSampleIndex])
             .resizable()
             .aspectRatio(contentMode: .fit)
     }
@@ -58,7 +62,7 @@ struct MainView: View {
             Button("Previous") {
                 walkToPreviousImage()
             }
-            .disabled(curentSampleIndex == 0 ? true : false)
+            .disabled(sampleImagesModel.curentSampleIndex == 0 ? true : false)
             .padding()
             
             Button {
@@ -75,29 +79,29 @@ struct MainView: View {
             Button("Next") {
                 walkToNextImage()
             }
-            .disabled(curentSampleIndex == sampleImages.count - 1 ? true : false)
+            .disabled(sampleImagesModel.curentSampleIndex == sampleImagesModel.sampleImages.count - 1 ? true : false)
             .padding()
         }
     }
     
     func walkToPreviousImage() {
-        if curentSampleIndex > 0 {
-            curentSampleIndex -= 1
-        } else if curentSampleIndex == 0 {
+        if sampleImagesModel.curentSampleIndex > 0 {
+            sampleImagesModel.curentSampleIndex -= 1
+        } else if sampleImagesModel.curentSampleIndex == 0 {
             return
         }
     }
     
     func walkToNextImage() {
-        if curentSampleIndex < sampleImages.count - 1 {
-            curentSampleIndex += 1
-        } else if curentSampleIndex == sampleImages.count - 1 {
+        if sampleImagesModel.curentSampleIndex < sampleImagesModel.sampleImages.count - 1 {
+            sampleImagesModel.curentSampleIndex += 1
+        } else if sampleImagesModel.curentSampleIndex == sampleImagesModel.sampleImages.count - 1 {
             return
         }
     }
     
     func recognizeTextFromImage() {
-        let currentImage = UIImage(resource: sampleImages[curentSampleIndex])
+        let currentImage = UIImage(resource: sampleImagesModel.sampleImages[sampleImagesModel.curentSampleIndex])
         
         guard let cgCurrentImage = currentImage.cgImage else { return }
     
