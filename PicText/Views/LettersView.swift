@@ -13,7 +13,7 @@ struct UniqueCharacter: Identifiable {
 }
 
 struct LettersView: View {
-   var letters : [UniqueCharacter]
+    var letters : [UniqueCharacter]
     var body: some View {
         List(letters) { letter in
             Text(String(letter.value))
