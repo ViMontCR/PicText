@@ -9,72 +9,78 @@ import SwiftUI
 import Vision
 
 struct MainView: View {
-    var samples: [ImageResource] = [.sample1, .sample2, .sample3]
-    @State private var recognizedText = ""
+    var sampleImages: [ImageResource] = [.sample1, .sample2, .sample3]
     @State var curentSampleIndex: Int = 0
+    @State private var recognizedText = ""
     @State var resultArray: [String] = []
-    @State var myblablaarray: [SelectedText] = []
+    @State var selectedTexts: [SelectedText] = []
     
     var body: some View {
         NavigationStack {
             VStack {
-                Text("Viktor's OCR")
-                    .font(.title)
+                titleView
                 
-                Image(samples[curentSampleIndex])
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+                sampleImageView
                 
-                HStack {
-                    Button("Previous") {
-                        previousImage()
-                        
-                    }
-                    .disabled(curentSampleIndex == 0 ? true : false)
-                    .padding()
-                    
-                    
-                    Button {
-                        //call OCR function
-                        recognizeText()
-                    } label: {
-                        HStack {
-                            Image(systemName: "checkmark.square")
-                            Text("Recognize")
-                        }
-                    }
-                    
-                    .padding()
-                    
-                    Button("Next") {
-                        nextImage()
-                    }
-                    .disabled(curentSampleIndex == samples.count - 1 ? true : false)
-                    .padding()
-                }
+                functionalPannelButtons
                 
                 List {
-                    ForEach(myblablaarray, id: \.self) { item in
+                    ForEach(selectedTexts, id: \.self) { item in
                         SelectedTextView(selectedText: item)
                     }
                 }
-                //TextEditor(text: $recognizedText)
-                //
-                //          Button("Find") {
-                //findText()
-                //          }
+                
                 NavigationLink("Next Page", value: "1")
                     .disabled(resultArray.isEmpty)
             }
             .padding()
             .navigationDestination(for: String.self) { value in
-                SentensesListView(list: myblablaarray)
+                SentensesListView(list: selectedTexts)
             }
             .navigationBarTitle("PicTextView", displayMode: .inline)
         }
     }
     
-      func previousImage() {
+    var titleView: some View {
+        Text("Viktor's OCR")
+            .font(.title)
+            .italic()
+    }
+    
+    var sampleImageView: some View {
+        Image(sampleImages[curentSampleIndex])
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+    }
+    
+    var functionalPannelButtons: some View {
+        HStack {
+            Button("Previous") {
+                walkToPreviousImage()
+            }
+            .disabled(curentSampleIndex == 0 ? true : false)
+            .padding()
+            
+            Button {
+                //call OCR function
+                recognizeTextFromImage()
+            } label: {
+                HStack {
+                    Image(systemName: "checkmark.square")
+                    Text("Recognize")
+                }
+            }
+            .padding()
+            
+            Button("Next") {
+                walkToNextImage()
+            }
+            .disabled(curentSampleIndex == sampleImages.count - 1 ? true : false)
+            .padding()
+        }
+    }
+    
+    func walkToPreviousImage() {
         if curentSampleIndex > 0 {
             curentSampleIndex -= 1
         } else if curentSampleIndex == 0 {
@@ -82,52 +88,50 @@ struct MainView: View {
         }
     }
     
-    func nextImage() {
-        if curentSampleIndex < samples.count - 1 {
+    func walkToNextImage() {
+        if curentSampleIndex < sampleImages.count - 1 {
             curentSampleIndex += 1
-        } else if curentSampleIndex == samples.count - 1 {
+        } else if curentSampleIndex == sampleImages.count - 1 {
             return
         }
     }
     
-     func recognizeText() {
-        let image = UIImage(resource: samples[curentSampleIndex])
+    func recognizeTextFromImage() {
+        let currentImage = UIImage(resource: sampleImages[curentSampleIndex])
         
-        guard let cgImage = image.cgImage else { return }
+        guard let cgCurrentImage = currentImage.cgImage else { return }
     
-        let handler = VNImageRequestHandler(cgImage: cgImage)
+        let requestHandler = VNImageRequestHandler(cgImage: cgCurrentImage)
         let request = VNRecognizeTextRequest { request, error in
             guard  error == nil else {
                 print(error?.localizedDescription ?? "")
                 return
             }
-            guard let result = request.results as?[VNRecognizedTextObservation] else { return }
+            guard let textObservations = request.results as?[VNRecognizedTextObservation] else { return }
             
-            let recogArr = result.compactMap{result in
+            let recognizedTexts = textObservations.compactMap{result in
                 result.topCandidates(1).first?.string
             }
             DispatchQueue.main.async {
-                recognizedText = recogArr.joined(separator: " ")
+                recognizedText = recognizedTexts.joined(separator: " ")
                 recognizedText = recognizedText.replacingOccurrences(of: "- ", with: "")
                 resultArray = recognizedText.components(separatedBy: ".")
                
-                
-                myblablaarray = resultArray.map { SelectedText(str: $0, isActive: false)}
+                selectedTexts = resultArray.map { SelectedText(str: $0, isActive: false)}
             }
         }
         
         request.recognitionLevel = .accurate
         
         do {
-            try handler.perform([request])
+            try requestHandler.perform([request])
         } catch {
             print(error.localizedDescription)
         }
     }
     
-    func findText() {
+    func findFullStop() {
         let indexOfFullStop = recognizedText.firstIndex(of: ".")!
-       
         let beginning = recognizedText[..<indexOfFullStop]
         print(beginning)
     }
