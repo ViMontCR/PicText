@@ -3,7 +3,7 @@
 //  PicText
 //
 //  Created by Viktor Montazer on 23.02.2025.
-//
+
 
 import SwiftUI
 import SwiftData
@@ -12,7 +12,8 @@ import SwiftData
 struct PicTextApp: App {
     var body: some Scene {
         WindowGroup {
-            MainView()
+            //MainView()
+            CameraView()
         }
         .modelContainer(for: SampleModel.self)
     }
